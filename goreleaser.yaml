@@ -1,0 +1,30 @@
+project_name: codecamp22
+env_files:
+  # This should point to the file where the github access token is stored
+  github_token: ~/.github/token_codecamp
+before:
+  hooks:
+    - go mod tidy
+    # This will log into to AWS.
+    - aws ecr get-login-password | docker login -u AWS --password-stdin "https://$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.$(aws configure get region).amazonaws.com"
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    id: codecamp22
+    main: ./cmd/codecamp22  
+    binary: codecamp22
+
+release:
+  disable: true
+
+dockers:
+  # Change image template to the name of your docker repository
+  - image_templates: [ "571908524012.dkr.ecr.eu-north-1.amazonaws.com/babtist/codecamp22:{{ .Tag }}"]
+    dockerfile: docker/Dockerfile
+    goos: linux
+    goarch: amd64
+    ids:
+    - codecamp22
+    skip_push: false
